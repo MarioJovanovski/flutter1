@@ -5,15 +5,17 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lime),
+        primarySwatch: Colors.blue,
+        hintColor: Colors.green,
+        backgroundColor: Colors.grey[200],
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: '203172'),
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({Key? key, required this.title});
 
   final String title;
 
@@ -31,11 +33,43 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  
+  List<String> clothes = [];
+  TextEditingController clothesController = TextEditingController();
+  TextEditingController editController = TextEditingController();
+  int? editingIndex;
 
-  void _incrementCounter() {
+  void _addClothes() {
     setState(() {
-     
+      String newClothes = clothesController.text;
+      if (newClothes.isNotEmpty) {
+        if (editingIndex != null) {
+          // If we are editing, update the existing clothes
+          clothes[editingIndex!] = newClothes;
+          editingIndex = null;
+        } else {
+          // If not editing, add new clothes
+          clothes.add(newClothes);
+        }
+        clothesController.clear();
+      }
+    });
+  }
+
+  void _deleteClothes(int index) {
+    setState(() {
+      clothes.removeAt(index);
+      if (editingIndex == index) {
+        // If we are deleting the currently edited item, reset editingIndex
+        editingIndex = null;
+        editController.clear();
+      }
+    });
+  }
+
+  void _startEditing(int index) {
+    setState(() {
+      editingIndex = index;
+      editController.text = clothes[index];
     });
   }
 
@@ -43,28 +77,108 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.indigoAccent,
+        backgroundColor: Color.fromARGB(255, 54, 145, 95),
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Mobilni informaciski sistemi \nAnaliza i dizajn na IS \nProgramiranje video igri ',
+      backgroundColor: Color.fromARGB(
+          255, 54, 145, 95), // Set the background color of the entire app
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          for (int i = 0; i < clothes.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 8.0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Color.fromARGB(255, 218, 149, 22),
+                      width: 2.0), // Add a border
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: Color.fromARGB(255, 218, 149, 22),
+                ),
+                child: ListTile(
+                  title: editingIndex == i
+                      ? TextField(
+                          controller: editController,
+                          decoration:
+                              const InputDecoration(labelText: 'Edit Clothes'),
+                        )
+                      : Text(
+                          clothes[i],
+                          style: TextStyle(color: Color.fromARGB(255, 9, 103, 211)), // Set the text color to blue
+                        ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (editingIndex == i)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: Color.fromARGB(255, 6, 240, 84), // Set the background color of the border
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.check,
+                                  color: Color.fromARGB(255, 97, 10, 10)),
+                              onPressed: () => _addClothes(),
+                            ),
+                          ),
+                        ),
+                      if (editingIndex != i)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: Color.fromARGB(255, 6, 240, 84), // Set the background color of the border
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color: Color.fromARGB(255, 97, 10, 10)),
+                              onPressed: () => _startEditing(i),
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            color: Color.fromARGB(255, 6, 240, 84), // Set the background color of the border
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.delete,
+                                color: Color.fromARGB(255, 97, 10, 10)),
+                            onPressed: () => _deleteClothes(i),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            Text(
-              '',
-              style: Theme.of(context).textTheme.headlineMedium,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: clothesController,
+              decoration: const InputDecoration(labelText: 'Add Clothes'),
             ),
-          ],
-        ),
+          ),
+          ElevatedButton(
+            onPressed: _addClothes,
+            style: ElevatedButton.styleFrom(
+              primary: Colors.green, // background color
+            ),
+            child: Text(
+              editingIndex != null ? 'Update Clothes' : 'Add Clothes',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: const Icon(Icons.add),
-      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
